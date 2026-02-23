@@ -1,0 +1,33 @@
+{
+  "name": "that-browser",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "That Browser — An open-source AI-native browser with multi-provider LLM support and browser automation",
+  "main": "./out/main/main.js",
+  "author": "Adisak Sukul",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "dist": "electron-vite build && electron-builder",
+    "dist:win": "electron-vite build && electron-builder --win",
+    "dist:dir": "electron-vite build && electron-builder --dir",
+    "dist:mac": "electron-vite build && electron-builder --mac"
+  },
+  "dependencies": {
+    "conf": "^15.1.0",
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.1",
+    "electron": "^34.2.0",
+    "electron-builder": "^26.7.0",
+    "electron-vite": "^3.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.3",
+    "vite": "^6.3.5"
+  }
+}

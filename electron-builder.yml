@@ -1,0 +1,49 @@
+appId: com.thatbrowser.app
+productName: "That Browser"
+copyright: "Copyright © 2026 Adisak Sukul"
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - "out/**/*"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  asar: false
+  signAndEditExecutable: false
+  # icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: "That-Browser-${version}-Setup.${ext}"
+  # installerIcon: build/icon.ico
+  # uninstallerIcon: build/icon.ico
+  # installerHeaderIcon: build/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "That Browser"
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  # icon: build/icon.icns
+  category: public.app-category.productivity
+
+dmg:
+  artifactName: "That-Browser-${version}.${ext}"
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  # icon: build

@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+
+# Electron builder cache
+.electron-builder-cache/
+
+# Coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
+nul
+
+# Claude Code local settings
+.claude/
+
+# Vite temp config
+electron.vite.config.*.mjs
+
+# Package lock (optional — remove this line if you prefer to track it)
+package-lock.json
+
+# Release installers (uploaded to GitHub Releases, not tracked in git)
+*.exe
+*.dmg
+*.AppImage
+*.blockmap
