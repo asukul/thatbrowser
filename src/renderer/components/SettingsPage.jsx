@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { X, Cloud, HardDrive, Wifi, Loader, CheckCircle, AlertCircle, Mic, ChevronDown, Download, RefreshCw, ExternalLink } from 'lucide-react'
 
 const PROVIDERS = [
-    { key: 'openai', name: 'OpenAI', type: 'cloud', defaultModel: 'gpt-4o', hint: 'Get key at platform.openai.com' },
-    { key: 'anthropic', name: 'Claude (Anthropic)', type: 'cloud', defaultModel: 'claude-sonnet-4-5-20250929', hint: 'Get key at console.anthropic.com' },
-    { key: 'gemini', name: 'Google Gemini', type: 'cloud', defaultModel: 'gemini-2.0-flash', hint: 'Get key at aistudio.google.com' },
-    { key: 'openrouter', name: 'OpenRouter', type: 'cloud', defaultModel: 'anthropic/claude-3.5-sonnet', hint: 'Access 100+ models at openrouter.ai' },
+    { key: 'openai', name: 'OpenAI', type: 'cloud', defaultModel: 'chatgpt-5.2-thinking', hint: 'Get key at platform.openai.com' },
+    { key: 'anthropic', name: 'Claude (Anthropic)', type: 'cloud', defaultModel: 'claude-opus-4-6', hint: 'Get key at console.anthropic.com' },
+    { key: 'gemini', name: 'Google Gemini', type: 'cloud', defaultModel: 'gemini-3.1-pro', hint: 'Get key at aistudio.google.com' },
+    { key: 'openrouter', name: 'OpenRouter', type: 'cloud', defaultModel: 'anthropic/claude-opus-4-6', hint: 'Access 100+ models at openrouter.ai' },
     { key: 'ollama', name: 'Ollama', type: 'local', defaultModel: 'llama3.2', hint: 'Run: ollama serve (localhost:11434)' },
     { key: 'lmstudio', name: 'LM Studio', type: 'local', defaultModel: 'local-model', hint: 'Start server in LM Studio → Local Server tab' }
 ]

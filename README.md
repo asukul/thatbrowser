@@ -73,10 +73,10 @@ Builds the executable without an installer.
 
 | Provider | Type | Default Model | How to Get Access |
 |----------|------|---------------|-------------------|
-| OpenAI | Cloud | gpt-4o | [platform.openai.com](https://platform.openai.com) |
-| Anthropic Claude | Cloud | claude-sonnet-4-5-20250929 | [console.anthropic.com](https://console.anthropic.com) |
-| Google Gemini | Cloud | gemini-2.0-flash | [aistudio.google.com](https://aistudio.google.com) |
-| OpenRouter | Cloud | anthropic/claude-3.5-sonnet | [openrouter.ai](https://openrouter.ai) — access 100+ models |
+| OpenAI | Cloud | chatgpt-5.2-thinking | [platform.openai.com](https://platform.openai.com) |
+| Anthropic Claude | Cloud | claude-opus-4-6 | [console.anthropic.com](https://console.anthropic.com) |
+| Google Gemini | Cloud | gemini-3.1-pro | [aistudio.google.com](https://aistudio.google.com) |
+| OpenRouter | Cloud | anthropic/claude-opus-4-6 | [openrouter.ai](https://openrouter.ai) — access 100+ models |
 | Ollama | Local | llama3.2 | [ollama.com](https://ollama.com) — run `ollama serve` |
 | LM Studio | Local | (your loaded model) | [lmstudio.ai](https://lmstudio.ai) — start the local server |
 
