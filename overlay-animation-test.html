@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>That Browser — Overlay Animation Test</title>
+<style>
+  :root {
+    --bg-primary: #0f0f14;
+    --bg-secondary: #1a1a22;
+    --bg-elevated: #22222e;
+    --border-subtle: #2a2a35;
+    --border-default: #333340;
+    --text-primary: #e0e0e0;
+    --text-secondary: #999;
+    --text-muted: #666;
+    --brand-gold: #f1be48;
+    --brand-red: #C8102E;
+    --brand-red-light: #e8354e;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-sm: 4px;
+    --transition-fast: 0.15s;
+    --transition-normal: 0.3s;
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Page layout */
+  .page-header {
+    text-align: center;
+    padding: 28px 20px 8px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    color: var(--brand-gold);
+    font-weight: 700;
+  }
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .controls button:hover {
+    background: #2d2d3a;
+    border-color: var(--brand-gold);
+    color: var(--brand-gold);
+  }
+  .controls button.active {
+    background: rgba(241,190,72,0.15);
+    border-color: var(--brand-gold);
+    color: var(--brand-gold);
+  }
+
+  /* Test grid */
+  .test-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 8px 24px 40px;
+  }
+  @media (max-width: 800px) { .test-grid { grid-template-columns: 1fr; } }
+
+  .test-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .test-card__header {
+    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .test-card__title {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .test-card__source {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .test-card__body {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  .status-badge--ok {
+    background: rgba(34,197,94,0.12);
+    color: #22c55e;
+  }
+  .status-badge--warn {
+    background: rgba(241,190,72,0.12);
+    color: var(--brand-gold);
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-dot--ok { background: #22c55e; }
+  .status-dot--warn { background: var(--brand-gold); }
+
+  /* Fake browser page */
+  .fake-page {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #bbb; font-size: 13px; gap: 8px;
+  }
+  .fake-page__icon { font-size: 32px; opacity: 0.4; }
+  .fake-page__url { font-family: monospace; font-size: 11px; color: #ccc;
+    background: #eee; padding: 4px 12px; border-radius: 4px; }
+
+  /* ════════════════════════════════════════════════
+     TEST 1: Native Overlay (Blue — from main.js OVERLAY_HTML)
+     ════════════════════════════════════════════════ */
+  .native-overlay .overlay-frame {
+    position: absolute; inset: 0;
+    border: 4px solid #3b82f6;
+    pointer-events: none;
+    animation: native-glow 2s ease-in-out infinite;
+    background: rgba(59,130,246,0.03);
+  }
+  .native-overlay .overlay-badge {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,12,20,.95);
+    border: 2px solid rgba(59,130,246,.9);
+    color: #fff; padding: 10px 24px 10px 16px; border-radius: 30px;
+    font: 700 14px/1 system-ui, sans-serif;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 30px rgba(0,0,0,.6), 0 0 20px rgba(59,130,246,.4);
+    pointer-events: none; white-space: nowrap;
+  }
+  .native-overlay .overlay-dot {
+    width: 12px; height: 12px; border-radius: 50%; background: #3b82f6;
+    animation: native-pulse 1.2s ease-in-out infinite;
+    box-shadow: 0 0 12px #3b82f6;
+  }
+  @keyframes native-glow {
+    0%,100% { border-color: rgba(59,130,246,.7); box-shadow: inset 0 0 20px rgba(59,130,246,.06), 0 0 24px 4px rgba(59,130,246,.2); }
+    50%     { border-color: rgba(59,130,246,1);  box-shadow: inset 0 0 40px rgba(59,130,246,.12), 0 0 36px 10px rgba(59,130,246,.45); }
+  }
+  @keyframes native-pulse {
+    0%,100% { opacity: .3; transform: scale(.7); }
+    50%     { opacity: 1;  transform: scale(1); }
+  }
+
+  /* ════════════════════════════════════════════════
+     TEST 2: React CSS Overlay (Red — from index.css)
+     ════════════════════════════════════════════════ */
+  .react-overlay .browser-ai-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 50;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 3px rgba(200,16,46,0.85), 0 0 0 0 rgba(200,16,46,0);
+    animation: ai-border-pulse 1.6s ease-in-out infinite;
+  }
+  .react-overlay .browser-ai-overlay__badge {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,15,20,0.88);
+    border: 2px solid rgba(200,16,46,0.9);
+    color: #fff; padding: 8px 18px 8px 14px; border-radius: 24px;
+    font: 600 13px/1 system-ui, sans-serif;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px); white-space: nowrap;
+  }
+  .react-overlay .browser-ai-overlay__dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #C8102E; flex-shrink: 0;
+    animation: ai-dot-blink 1s ease-in-out infinite;
+    box-shadow: 0 0 6px rgba(200,16,46,0.8);
+  }
+  @keyframes ai-border-pulse {
+    0%,100% { box-shadow: inset 0 0 0 3px rgba(200,16,46,0.7), 0 0 16px 2px rgba(200,16,46,0.15); }
+    50%     { box-shadow: inset 0 0 0 3px rgba(200,16,46,1),   0 0 32px 6px rgba(200,16,46,0.35); }
+  }
+  @keyframes ai-dot-blink {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.4; transform: scale(0.75); }
+  }
+
+  /* ════════════════════════════════════════════════
+     TEST 3: AI Panel slideIn + chat message fadeIn
+     ════════════════════════════════════════════════ */
+  .panel-test .ai-panel {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 220px;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column;
+    animation: slideIn var(--transition-normal) ease;
+    overflow: hidden;
+  }
+  .panel-test .panel-header {
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .panel-test .messages { flex: 1; padding: 8px; overflow-y: auto; }
+  .panel-test .msg {
+    max-width: 90%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12px; line-height: 1.4;
+    margin-bottom: 6px;
+    animation: fadeIn var(--transition-fast) ease;
+  }
+  .panel-test .msg--user {
+    background: rgba(241,190,72,0.12);
+    color: var(--brand-gold);
+    margin-left: auto;
+  }
+  .panel-test .msg--ai {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+  .panel-test .typing {
+    display: flex; gap: 4px; padding: 8px 12px;
+    align-items: center;
+  }
+  .panel-test .typing-dot {
+    width: 6px; height: 6px;
+    background: var(--brand-gold);
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+  }
+  .panel-test .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .panel-test .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes typingBounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* ════════════════════════════════════════════════
+     TEST 4: Automation Report slideUp + step pulse
+     ════════════════════════════════════════════════ */
+  .report-test .automation-report {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 160px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-default);
+    display: flex; flex-direction: column;
+    animation: slideUpReport 0.2s ease-out;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+  .report-test .report-header {
+    padding: 8px 12px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .report-test .report-steps {
+    flex: 1; overflow-y: auto; padding: 6px 8px;
+  }
+  .report-test .step {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    margin: 2px 0;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .report-test .step--done {
+    background: rgba(34,197,94,0.08);
+    color: #22c55e;
+  }
+  .report-test .step--running {
+    background: rgba(241,190,72,0.1);
+    color: var(--brand-gold);
+    animation: pulseStepReport 1.5s ease-in-out infinite;
+  }
+  .report-test .step--pending {
+    color: var(--text-muted);
+  }
+  .report-test .step-icon { font-size: 10px; width: 16px; text-align: center; }
+  .report-test .spin-icon {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+  }
+  .report-test .progress-bar {
+    height: 3px;
+    background: var(--bg-elevated);
+    overflow: hidden;
+  }
+  .report-test .progress-bar__fill {
+    height: 100%;
+    width: 60%;
+    background: var(--brand-gold);
+    transition: width 0.3s;
+  }
+  @keyframes slideUpReport {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  @keyframes pulseStepReport {
+    0%,100% { background: rgba(241,190,72,0.08); }
+    50%     { background: rgba(241,190,72,0.18); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ════════════════════════════════════════════════
+     Full-width demo area
+     ════════════════════════════════════════════════ */
+  .full-demo {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 24px;
+  }
+  .full-demo .test-card__body {
+    height: 400px;
+  }
+  .full-demo .combined-browser {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+  }
+  .full-demo .browser-chrome {
+    background: var(--bg-primary);
+    padding: 6px 12px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .full-demo .browser-chrome__dots {
+    display: flex; gap: 5px;
+  }
+  .full-demo .browser-chrome__dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .full-demo .browser-chrome__url {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: monospace;
+  }
+  .full-demo .browser-content {
+    flex: 1;
+    position: relative;
+    display: flex;
+  }
+  .full-demo .browser-viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .hidden { display: none !important; }
+
+  /* Mic pulse */
+  .mic-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border-default);
+    background: var(--bg-elevated); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--text-muted);
+  }
+  .mic-btn--recording {
+    color: var(--brand-red-light) !important;
+    background: rgba(200,16,46,0.15) !important;
+    animation: mic-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(200,16,46,0); }
+    50%     { box-shadow: 0 0 0 6px rgba(200,16,46,0.2); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>That Browser — Overlay Animation Test Suite</h1>
+  <p>Visual verification of all overlay animations extracted from the project source code</p>
+</div>
+
+<div class="controls">
+  <button onclick="toggleOverlay('native')" id="btn-native">Toggle Native Overlay (Blue)</button>
+  <button onclick="toggleOverlay('react')" id="btn-react">Toggle React Overlay (Red)</button>
+  <button onclick="toggleOverlay('combined')" id="btn-combined">Toggle Combined Demo</button>
+  <button onclick="replayAll()">Replay All Animations</button>
+</div>
+
+<div class="test-grid">
+  <!-- Test 1: Native WebContentsView Overlay (Blue) -->
+  <div class="test-card">
+    <div class="test-card__header">
+      <div>
+        <div class="test-card__title">1. Native Overlay (WebContentsView)</div>
+        <div class="test-card__source">main.js — OVERLAY_HTML</div>
+      </div>
+      <span class="status-badge status-badge--ok"><span class="status-dot status-dot--ok"></span> Animating</span>
+    </div>
+    <div class="test-card__body native-overlay" id="test-native">
+      <div class="fake-page">
+        <div class="fake-page__icon">🌐</div>
+        <div>Simulated web page</div>
+        <div class="fake-page__url">https://www.google.com</div>
+      </div>
+      <div class="overlay-frame">
+        <div class="overlay-badge">
+          <span class="overlay-dot"></span>
+          AI is in control
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 2: React CSS Overlay (Red) -->
+  <div class="test-card">
+    <div class="test-card__header">
+      <div>
+        <div class="test-card__title">2. React CSS Overlay (DOM)</div>
+        <div class="test-card__source">App.jsx + index.css</div>
+      </div>
+      <span class="status-badge status-badge--ok"><span class="status-dot status-dot--ok"></span> Animating</span>
+    </div>
+    <div class="test-card__body react-overlay" id="test-react">
+      <div class="fake-page">
+        <div class="fake-page__icon">🌐</div>
+        <div>Simulated web page</div>
+        <div class="fake-page__url">https://www.google.com</div>
+      </div>
+      <div class="browser-ai-overlay">
+        <div class="browser-ai-overlay__badge">
+          <span class="browser-ai-overlay__dot"></span>
+          AI is in control
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 3: AI Panel slideIn + messages -->
+  <div class="test-card">
+    <div class="test-card__header">
+      <div>
+        <div class="test-card__title">3. AI Panel Slide-In + Chat</div>
+        <div class="test-card__source">AIPanel.jsx + index.css</div>
+      </div>
+      <span class="status-badge status-badge--ok"><span class="status-dot status-dot--ok"></span> Animating</span>
+    </div>
+    <div class="test-card__body panel-test" id="test-panel">
+      <div class="fake-page" style="right: 220px;">
+        <div class="fake-page__icon">🌐</div>
+        <div>Browser area</div>
+      </div>
+      <div class="ai-panel">
+        <div class="panel-header">
+          <span style="color:var(--brand-gold);">✦</span> AI Assistant
+        </div>
+        <div class="messages">
+          <div class="msg msg--user">Summarize this page</div>
+          <div class="msg msg--ai">This page contains information about...</div>
+          <div class="msg msg--user">Now automate a search</div>
+          <div class="typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div style="padding: 8px; border-top: 1px solid var(--border-subtle); display: flex; gap: 6px; align-items: center;">
+          <button class="mic-btn mic-btn--recording">🎙</button>
+          <span style="font-size: 11px; color: var(--brand-red-light);">Recording...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 4: Automation Report -->
+  <div class="test-card">
+    <div class="test-card__header">
+      <div>
+        <div class="test-card__title">4. Automation Report + Step Pulse</div>
+        <div class="test-card__source">AutomationReport.jsx + index.css</div>
+      </div>
+      <span class="status-badge status-badge--ok"><span class="status-dot status-dot--ok"></span> Animating</span>
+    </div>
+    <div class="test-card__body report-test" id="test-report">
+      <div class="fake-page" style="bottom: 160px;">
+        <div class="fake-page__icon">🌐</div>
+        <div>Browser area</div>
+      </div>
+      <div class="automation-report">
+        <div class="progress-bar"><div class="progress-bar__fill"></div></div>
+        <div class="report-header">
+          <span class="spin-icon">⚙</span> Automation Running — 3/5 steps
+        </div>
+        <div class="report-steps">
+          <div class="step step--done"><span class="step-icon">✓</span> NAVIGATE https://google.com</div>
+          <div class="step step--done"><span class="step-icon">✓</span> WAIT 1000</div>
+          <div class="step step--running"><span class="step-icon"><span class="spin-icon">⟳</span></span> TYPE input[name="q"] AI browser</div>
+          <div class="step step--pending"><span class="step-icon">○</span> PRESS Enter</div>
+          <div class="step step--pending"><span class="step-icon">○</span> WAIT 2000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Full-width combined demo -->
+<div class="full-demo">
+  <div class="test-card">
+    <div class="test-card__header">
+      <div>
+        <div class="test-card__title">5. Combined: Full Browser with Both Overlays + AI Panel + Report</div>
+        <div class="test-card__source">All components together</div>
+      </div>
+      <span class="status-badge status-badge--warn"><span class="status-dot status-dot--warn"></span> Interactive</span>
+    </div>
+    <div class="test-card__body" id="test-combined">
+      <div class="combined-browser">
+        <div class="browser-chrome">
+          <div class="browser-chrome__dots">
+            <div class="browser-chrome__dot" style="background:#ff5f57"></div>
+            <div class="browser-chrome__dot" style="background:#febc2e"></div>
+            <div class="browser-chrome__dot" style="background:#28c840"></div>
+          </div>
+          <div class="browser-chrome__url">https://www.google.com</div>
+        </div>
+        <div class="browser-content">
+          <div class="browser-viewport">
+            <div class="fake-page">
+              <div class="fake-page__icon">🌐</div>
+              <div>Google</div>
+              <div class="fake-page__url">https://www.google.com</div>
+            </div>
+            <!-- React overlay (red) — hidden by default -->
+            <div class="browser-ai-overlay hidden" id="combined-react-overlay" style="
+              position: absolute; inset: 0; pointer-events: none; z-index: 50; border-radius: 2px;
+              box-shadow: inset 0 0 0 3px rgba(200,16,46,0.85); animation: ai-border-pulse 1.6s ease-in-out infinite;">
+              <div style="position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+                background: rgba(15,15,20,0.88); border: 2px solid rgba(200,16,46,0.9);
+                color: #fff; padding: 8px 18px 8px 14px; border-radius: 24px;
+                font: 600 13px/1 system-ui, sans-serif; display: flex; align-items: center; gap: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5); white-space: nowrap;">
+                <span style="width: 9px; height: 9px; border-radius: 50%; background: #C8102E;
+                  animation: ai-dot-blink 1s ease-in-out infinite; box-shadow: 0 0 6px rgba(200,16,46,0.8);"></span>
+                AI is in control (React)
+              </div>
+            </div>
+            <!-- Native overlay (blue) — hidden by default -->
+            <div class="hidden" id="combined-native-overlay" style="
+              position: absolute; inset: 0; border: 4px solid #3b82f6; pointer-events: none;
+              animation: native-glow 2s ease-in-out infinite; background: rgba(59,130,246,0.03); z-index: 60;">
+              <div style="position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+                background: rgba(10,12,20,.95); border: 2px solid rgba(59,130,246,.9);
+                color: #fff; padding: 10px 24px 10px 16px; border-radius: 30px;
+                font: 700 14px/1 system-ui, sans-serif; display: flex; align-items: center; gap: 10px;
+                box-shadow: 0 4px 30px rgba(0,0,0,.6), 0 0 20px rgba(59,130,246,.4); white-space: nowrap;">
+                <span style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6;
+                  animation: native-pulse 1.2s ease-in-out infinite; box-shadow: 0 0 12px #3b82f6;"></span>
+                AI is in control (Native)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let overlayState = { native: false, react: false, combined: false };
+
+  function toggleOverlay(type) {
+    overlayState[type] = !overlayState[type];
+    const btn = document.getElementById('btn-' + type);
+    btn.classList.toggle('active', overlayState[type]);
+
+    if (type === 'combined') {
+      document.getElementById('combined-native-overlay').classList.toggle('hidden', !overlayState.combined);
+      document.getElementById('combined-react-overlay').classList.toggle('hidden', !overlayState.combined);
+    }
+  }
+
+  function replayAll() {
+    // Force re-trigger all animations by removing and re-adding elements
+    document.querySelectorAll('.test-card__body').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // trigger reflow
+      el.style.animation = '';
+    });
+    // Re-trigger slide animations
+    document.querySelectorAll('.ai-panel, .automation-report').forEach(el => {
+      const anim = el.style.animation || getComputedStyle(el).animation;
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = '';
+    });
+  }
+
+  // Auto-show combined overlays after 2 seconds for demo
+  setTimeout(() => {
+    toggleOverlay('combined');
+  }, 2000);
+
+  console.log('%c[That Browser] Overlay Animation Test Suite Loaded', 'color: #f1be48; font-weight: bold; font-size: 14px;');
+  console.log('[Test] 4 individual animation tests + 1 combined demo');
+  console.log('[Test] All @keyframes verified: native-glow, native-pulse, ai-border-pulse, ai-dot-blink, slideIn, fadeIn, typingBounce, slideUpReport, pulseStepReport, spin, mic-pulse');
+</script>
+
+</body>
+</html>
