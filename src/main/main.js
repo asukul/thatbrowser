@@ -7,7 +7,6 @@ import { GeminiSearch } from './gemini-search.js'
 import { BrowserAutomation } from './browser-automation.js'
 import Store from 'electron-store'
 import os from 'os'
-import crypto from 'crypto'
 import { initUpdater, stopUpdater } from './updater.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -46,12 +45,8 @@ function devLog(level, category, message, data = null) {
     else console.log(prefix, message)
 }
 
-// Derive a per-machine encryption key so stored data isn't portable/readable across machines
-const machineId = `${os.hostname()}-${os.homedir()}-${os.userInfo().username}`
-const encKey = crypto.createHash('sha256').update(machineId).digest('hex')
-
 const store = new Store({
-    encryptionKey: encKey,
+    encryptionKey: 'ai-browser-isu-2026',
     defaults: {
         aiSettings: {
             activeProvider: 'openai',
