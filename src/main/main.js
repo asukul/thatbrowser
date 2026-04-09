@@ -1071,7 +1071,7 @@ app.whenReady().then(async () => {
             await fs.writeFile(pathMod.join(outDir, `${stamp}.json`), payload)
             await fs.writeFile(pathMod.join(outDir, 'latest.json'), payload)
 
-            console.log(`[e2e] Done: ${result.passed}/${result.total} passed, ${result.failed} failed, ${result.durationMs}ms`)
+            console.error(`[e2e] Done: ${result.passed}/${result.total} passed, ${result.failed} failed, ${result.durationMs}ms`)
             app.exit(result.failed > 0 ? 1 : 0)
         } catch (e) {
             console.error('[e2e] Runner crashed:', e)

@@ -5,7 +5,7 @@
  * Imports TEST_CASES from the renderer module (plain ES data, no React deps)
  * and drives them against the same BrowserAutomation engine the UI uses.
  *
- * Exported entrypoint: runAllTestCases({ BrowserWindow, WebContentsView, automation })
+ * Exported entrypoint: runAllTestCases({ BrowserWindow, automation })
  * Returns: { total, passed, failed, durationMs, cases: [...] }
  */
 
@@ -65,7 +65,7 @@ async function runCommand(automation, webContents, cmd) {
             await automation.pressKey(webContents, cmd.key, cmd.modifiers || [])
             return {}
         case 'scroll':
-            await automation.scroll(webContents, cmd.x ?? 400, cmd.y ?? 300, cmd.deltaX ?? 0, cmd.deltaY ?? 0)
+            await automation.scroll(webContents, cmd.x ?? 0, cmd.y ?? 0, cmd.deltaX ?? 0, cmd.deltaY ?? 0)
             return {}
         case 'click': {
             const res = await automation.clickElement(webContents, cmd.selector)
@@ -82,17 +82,22 @@ async function runCase(automation, webContents, testCase) {
     const steps = []
 
     // Reset state between cases: clear storage (cookies, localStorage, cache) and
-    // navigate to about:blank so the next case starts clean.
+    // navigate to about:blank so the next case starts clean. Best-effort — if the
+    // reset fails, we log and continue so the next case still runs.
     try {
         await webContents.session.clearStorageData({
             storages: ['cookies', 'localstorage', 'indexdb', 'websql', 'cachestorage', 'serviceworkers', 'shadercache']
         })
-    } catch { /* best-effort */ }
+    } catch (e) {
+        console.error('[e2e]     reset: clearStorageData failed:', e?.message || e)
+    }
     try {
         const p = waitForLoadStop(webContents, 5000)
         webContents.loadURL('about:blank')
         await p
-    } catch { /* best-effort */ }
+    } catch (e) {
+        console.error('[e2e]     reset: about:blank failed:', e?.message || e)
+    }
 
     let caseError = null
 
