@@ -13,6 +13,9 @@ import { initUpdater, stopUpdater } from './updater.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Headless e2e test mode — see tests/headless-runner.js
+const runTestsMode = process.argv.includes('--run-tests')
+
 // ============================================================
 // DEV MODE LOGGING SYSTEM
 // ============================================================
@@ -1053,7 +1056,35 @@ ipcMain.on('shell:open', (e, url) => {
     shell.openExternal(url)
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    if (runTestsMode) {
+        // Headless e2e: skip UI, drive automation engine directly, write report, exit.
+        try {
+            const { pathToFileURL } = await import('url')
+            const pathMod = await import('path')
+            // Load runner from the repo's tests dir (not bundled by Vite — resolved at runtime).
+            const runnerUrl = pathToFileURL(pathMod.join(app.getAppPath(), 'tests', 'headless-runner.js')).href
+            const { runAllTestCases } = await import(/* @vite-ignore */ runnerUrl)
+            automation = new BrowserAutomation()
+            const result = await runAllTestCases({ BrowserWindow, automation })
+
+            const fs = await import('fs/promises')
+            const outDir = pathMod.resolve('tests/reports')
+            await fs.mkdir(outDir, { recursive: true })
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+            const payload = JSON.stringify(result, null, 2)
+            await fs.writeFile(pathMod.join(outDir, `${stamp}.json`), payload)
+            await fs.writeFile(pathMod.join(outDir, 'latest.json'), payload)
+
+            console.log(`[e2e] Done: ${result.passed}/${result.total} passed, ${result.failed} failed, ${result.durationMs}ms`)
+            app.exit(result.failed > 0 ? 1 : 0)
+        } catch (e) {
+            console.error('[e2e] Runner crashed:', e)
+            app.exit(2)
+        }
+        return
+    }
+
     createWindow()
     // Initialize auto-update checker
     initUpdater(mainWindow)
@@ -1066,6 +1097,9 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+    // In test mode, the runner controls exit via app.exit() — do NOT let the
+    // last-window-closed event quit the process before the report is written.
+    if (runTestsMode) return
     stopUpdater()
     if (process.platform !== 'darwin') {
         app.quit()
