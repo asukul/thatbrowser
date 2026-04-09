@@ -7,6 +7,7 @@ import { GeminiSearch } from './gemini-search.js'
 import { BrowserAutomation } from './browser-automation.js'
 import Store from 'electron-store'
 import os from 'os'
+import crypto from 'crypto'
 import { initUpdater, stopUpdater } from './updater.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -42,16 +43,20 @@ function devLog(level, category, message, data = null) {
     else console.log(prefix, message)
 }
 
+// Derive a per-machine encryption key so stored data isn't portable/readable across machines
+const machineId = `${os.hostname()}-${os.homedir()}-${os.userInfo().username}`
+const encKey = crypto.createHash('sha256').update(machineId).digest('hex')
+
 const store = new Store({
-    encryptionKey: 'ai-browser-isu-2026',
+    encryptionKey: encKey,
     defaults: {
         aiSettings: {
             activeProvider: 'openai',
             providers: {
                 openai: { apiKey: '', model: 'gpt-4o', baseUrl: 'https://api.openai.com/v1' },
-                anthropic: { apiKey: '', model: 'claude-sonnet-4-5-20250929', baseUrl: 'https://api.anthropic.com' },
+                anthropic: { apiKey: '', model: 'claude-sonnet-4-6', baseUrl: 'https://api.anthropic.com' },
                 gemini: { apiKey: '', model: 'gemini-2.0-flash', baseUrl: 'https://generativelanguage.googleapis.com/v1beta' },
-                openrouter: { apiKey: '', model: 'anthropic/claude-3.5-sonnet', baseUrl: 'https://openrouter.ai/api/v1' },
+                openrouter: { apiKey: '', model: 'anthropic/claude-sonnet-4-6', baseUrl: 'https://openrouter.ai/api/v1' },
                 ollama: { apiKey: '', model: 'llama3.2', baseUrl: 'http://localhost:11434' },
                 lmstudio: { apiKey: '', model: 'local-model', baseUrl: 'http://localhost:1234/v1' }
             }
