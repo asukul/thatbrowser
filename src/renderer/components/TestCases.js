@@ -91,6 +91,22 @@ export const TEST_CASES = [
         ]
     },
     {
+        id: 'wikipedia-random-article',
+        name: 'Wikipedia Random Article',
+        category: 'Page Interaction',
+        description: 'Go to Wikipedia, click "Random article" via CLICK_ELEMENT, then scroll through',
+        commands: [
+            { type: 'navigate', url: 'https://en.wikipedia.org/wiki/Main_Page' },
+            { type: 'wait', ms: 2000 },
+            { type: 'click_element', selector: 'a[href="/wiki/Special:Random"]' },
+            { type: 'wait', ms: 2500 },
+            { type: 'scroll', deltaY: 500 },
+            { type: 'wait', ms: 800 },
+            { type: 'scroll', deltaY: 500 },
+            { type: 'wait', ms: 500 },
+        ]
+    },
+    {
         id: 'bing-search-scroll',
         name: 'Bing Search + Scroll',
         category: 'Page Interaction',
