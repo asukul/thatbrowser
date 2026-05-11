@@ -43,6 +43,10 @@ The browser opens in development mode with hot-reload enabled.
 4. Click **Set Active** to make it your default provider
 5. Close Settings and click the **AI button** in the toolbar to open the chat panel
 
+## Prompt Templates
+
+- [Open-Source 3D Home Walkthrough Prompt (iOS + GCP)](docs/IOS_3D_HOME_WALKTHROUGH_PROMPT.md)
+
 ## Building for Distribution
 
 ### Windows
